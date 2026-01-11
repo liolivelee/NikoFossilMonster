@@ -28,4 +28,86 @@
 
 <input type="file" id="imageUpload" accept="image/*">
 
-<div id="s
+<div id="status">Waiting for an image...</div>
+<div id="preview-container"></div>
+<div id="label-container"></div>
+
+<script>
+  // URL of your model folder hosted on GitHub Pages
+  const MODEL_URL = "https://liolivelee.github.io/NikoFossilMonster/my_model/";
+
+  let model, labelContainer, maxPredictions;
+  const statusDiv = document.getElementById("status");
+
+  async function init() {
+      statusDiv.textContent = "Loading model...";
+      try {
+          const modelURL = MODEL_URL + "model.json";
+          const metadataURL = MODEL_URL + "metadata.json";
+          model = await tmImage.load(modelURL, metadataURL);
+          maxPredictions = model.getTotalClasses();
+
+          // Prepare label container
+          labelContainer = document.getElementById("label-container");
+          labelContainer.innerHTML = "";
+
+          statusDiv.textContent = "Model loaded! Choose an image.";
+
+          // Listen for image uploads
+          const imageInput = document.getElementById("imageUpload");
+          imageInput.addEventListener("change", handleImageUpload);
+      } catch (err) {
+          console.error(err);
+          statusDiv.textContent = "Failed to load model.";
+      }
+  }
+
+  async function handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      statusDiv.textContent = "Processing image...";
+
+      // Display uploaded image
+      const img = document.createElement("img");
+      img.src = window.URL.createObjectURL(file);
+      const previewContainer = document.getElementById("preview-container");
+      previewContainer.innerHTML = ""; // remove previous
+      previewContainer.appendChild(img);
+
+      // Predict once the image loads
+      img.onload = async () => {
+          try {
+              const prediction = await model.predict(img);
+
+              if (!prediction || prediction.length === 0) {
+                  labelContainer.textContent = "Prediction failed!";
+                  statusDiv.textContent = "Prediction failed!";
+                  return;
+              }
+
+              // Find the class with the highest probability
+              let bestPrediction = prediction[0];
+              for (let i = 1; i < prediction.length; i++) {
+                  if (prediction[i].probability > bestPrediction.probability) {
+                      bestPrediction = prediction[i];
+                  }
+              }
+
+              // Show only the class name
+              labelContainer.textContent = bestPrediction.className;
+              statusDiv.textContent = "Prediction complete!";
+          } catch (err) {
+              console.error(err);
+              labelContainer.textContent = "Error predicting image.";
+              statusDiv.textContent = "Prediction failed!";
+          }
+      };
+  }
+
+  // Initialize model when page loads
+  init();
+</script>
+
+</body>
+</html>
