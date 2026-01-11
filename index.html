@@ -4,27 +4,79 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Niko Fossil Lab</title>
+
+<!-- Google Font -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+
+<!-- TensorFlow + Teachable Machine -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
 <style>
-  body { font-family: 'Inter', sans-serif; background-color: #f7fbff; color: #102a43; margin:0; }
-  .container { max-width:480px; margin:auto; padding:20px; text-align:center; }
-  h2 { font-size:32px; font-weight:800; color:#0b5ed7; margin-bottom:4px; }
-  input[type="file"] { font-size:16px; margin-top:16px; }
-  #status { margin-top:12px; font-size:16px; }
-  #preview-container img { max-width:100%; height:auto; margin-top:16px; border-radius:12px; box-shadow:0 4px 8px rgba(0,0,0,0.1); }
-  .prediction-card { font-size:26px; font-weight:800; margin-top:18px; padding:16px; border-radius:16px; color:white; display:inline-block; min-width:240px; text-align:center; }
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f7fbff;
+  color: #102a43;
+  margin: 0;
+}
+
+.container {
+  max-width: 480px;
+  margin: auto;
+  padding: 20px;
+  text-align: center;
+}
+
+h2 {
+  font-size: 32px;
+  font-weight: 800;
+  color: #0b5ed7;
+  margin-bottom: 4px;
+}
+
+/* Bigger file input for kids */
+input[type="file"] {
+  font-size: 20px; /* bigger font */
+  margin-top: 16px;
+}
+
+/* Bigger and bold status text */
+#status {
+  margin-top: 12px;
+  font-size: 20px; /* bigger font */
+  font-weight: 700;
+}
+
+#preview-container img {
+  max-width: 100%;
+  height: auto;
+  margin-top: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.prediction-card {
+  font-size: 26px;
+  font-weight: 800;
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 16px;
+  color: white;
+  display: inline-block;
+  min-width: 240px;
+  text-align: center;
+}
 </style>
 </head>
 <body>
 <div class="container">
-<h2>Niko Fossil Lab</h2>
-<input type="file" id="imageUpload" accept="image/*">
-<div id="status">Loading model...</div>
-<div id="preview-container"></div>
-<div id="prediction" class="prediction-card"></div>
-<div id="all-predictions" style="margin-top:12px; font-size:14px;"></div>
+  <h2>Niko Fossil Lab</h2>
+
+  <input type="file" id="imageUpload" accept="image/*">
+
+  <div id="status">Loading model...</div>
+  <div id="preview-container"></div>
+  <div id="prediction" class="prediction-card"></div>
 </div>
 
 <script>
@@ -33,17 +85,18 @@ let model;
 const statusDiv = document.getElementById("status");
 const predictionDiv = document.getElementById("prediction");
 const previewContainer = document.getElementById("preview-container");
-const allPredictionsDiv = document.getElementById("all-predictions");
 
-// Known fossils (normalized keys)
+// Fossil mapping — keys must match model class names (lowercase)
 const fossilStyles = {
-  "you got a shark tooth fossil!": { color: "#0b5ed7", emoji: "🦈", message: "Monster Found!" },
-  "it is a shell": { color: "#198754", emoji: "🐚", message: "Look at this shell!" },
-  "trilobite": { color: "#d63384", emoji: "🦖", message: "Prehistoric monster!" }
+  "you got a shark tooth fossil!": { color: "#0b5ed7", emoji:"🦈", message:"Monster Found!" },
+  "it is a shell": { color: "#198754", emoji:"🐚", message:"Look at this shell!" },
+  "trilobite": { color: "#d63384", emoji:"🦖", message:"Prehistoric monster!" }
 };
 
-// Normalize strings: lowercase + trim
-function normalizeName(name) { return name.trim().toLowerCase(); }
+// Normalize string for matching
+function normalizeName(name) {
+  return name.trim().toLowerCase();
+}
 
 async function init() {
   try {
@@ -62,7 +115,6 @@ async function handleImageUpload(event) {
 
   statusDiv.textContent = "Looking at the fossil...";
   predictionDiv.textContent = "";
-  allPredictionsDiv.textContent = "";
   previewContainer.innerHTML = "";
 
   const img = document.createElement("img");
@@ -72,9 +124,6 @@ async function handleImageUpload(event) {
   img.onload = async () => {
     try {
       const predictions = await model.predict(img);
-
-      // Display all predictions for debugging
-      allPredictionsDiv.textContent = predictions.map(p => `${p.className}: ${p.probability.toFixed(2)}`).join(" | ");
 
       if (!predictions || predictions.length === 0) {
         predictionDiv.textContent = "No prediction";
@@ -106,4 +155,3 @@ init();
 </script>
 </body>
 </html>
-
