@@ -142,7 +142,7 @@ uploadButton.addEventListener("click", () => {
 async function init() {
   try {
     model = await tmImage.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
-    statusDiv.textContent = "Model ready!";
+    statusDiv.textContent = "Lab is open!";
 
     fileInput.addEventListener("change", handleImageUpload);
   } catch(err) {
