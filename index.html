@@ -1,166 +1,111 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>Niko Fossil Lab</title>
+
+  <!-- Google Font (kid-friendly & readable) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+
+  <!-- TensorFlow + Teachable Machine -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
   <style>
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: #f7fbff;
-  color: #102a43;
-  margin: 0;
-}
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f7fbff;
+      color: #102a43;
+      margin: 0;
+    }
 
-.container {
-  max-width: 480px;
-  margin: auto;
-  padding: 20px;
-  text-align: center;
-}
+    .container {
+      max-width: 480px;
+      margin: auto;
+      padding: 20px;
+      text-align: center;
+    }
 
-/* BIG friendly titles */
-h2 {
-  font-size: 30px;
-  font-weight: 800;
-  color: #0b5ed7;
-  margin-bottom: 6px;
-}
+    h2 {
+      font-size: 32px;
+      font-weight: 800;
+      color: #0b5ed7;
+      margin-bottom: 4px;
+    }
 
-h3 {
-  font-size: 22px;
-  font-weight: 600;
-  color: #2c7be5;
-  margin-top: 0;
-}
+    h3 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #2c7be5;
+      margin-top: 0;
+    }
 
-/* Prediction result */
-.prediction {
-  font-size: 26px;
-  font-weight: 800;
-  margin-top: 18px;
-  padding: 14px;
-  border-radius: 14px;
-  background-color: #e7f1ff;
-  color: #084298;
-}
+    input[type="file"] {
+      font-size: 16px;
+      margin-top: 16px;
+    }
 
-/* Buttons kids can tap easily */
-button {
-  font-size: 18px;
-  font-weight: 700;
-  padding: 14px 20px;
-  border-radius: 16px;
-  border: none;
-  background-color: #198754;
-  color: white;
-  margin-top: 12px;
-}
+    #preview-container img {
+      max-width: 100%;
+      height: auto;
+      margin-top: 16px;
+      border-radius: 12px;
+    }
 
-button:hover {
-  background-color: #157347;
-}
+    #status {
+      margin-top: 12px;
+      font-size: 16px;
+    }
 
-/* File input spacing */
-input[type="file"] {
-  font-size: 16px;
-  margin-top: 16px;
-}
-</style>
-
-  
+    .prediction {
+      font-size: 26px;
+      font-weight: 800;
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 14px;
+      background-color: #e7f1ff;
+      color: #084298;
+    }
+  </style>
 </head>
+
 <body>
+  <div class="container">
 
-<h2>Niko Fossil Lab</h2>
+    <h2>Niko Fossil Lab</h2>
+    <h3>Niko Fossil Monster</h3>
 
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap" rel="stylesheet">
+    <input type="file" id="imageUpload" accept="image/*">
 
+    <div id="status">Loading model...</div>
 
+    <div id="preview-container"></div>
 
-<input type="file" id="imageUpload" accept="image/*">
+    <div id="prediction" class="prediction"></div>
 
-<div id="status">Waiting for an image...</div>
-<div id="preview-container"></div>
-<div id="label-container"></div>
+  </div>
 
-<script>
-  // URL of your model folder hosted on GitHub Pages
-  const MODEL_URL = "https://liolivelee.github.io/NikoFossilLab/my_model/";
+  <script>
+    // 🔗 CHANGE ONLY IF YOUR REPO NAME OR FOLDER CHANGES
+    const MODEL_URL = "https://liolivelee.github.io/NikoFossilLab/my_model/";
 
-  let model, labelContainer, maxPredictions;
-  const statusDiv = document.getElementById("status");
+    let model;
+    const statusDiv = document.getElementById("status");
+    const predictionDiv = document.getElementById("prediction");
+    const previewContainer = document.getElementById("preview-container");
 
-  async function init() {
-      statusDiv.textContent = "Loading model...";
+    async function init() {
       try {
-          const modelURL = MODEL_URL + "model.json";
-          const metadataURL = MODEL_URL + "metadata.json";
-          model = await tmImage.load(modelURL, metadataURL);
-          maxPredictions = model.getTotalClasses();
+        const modelURL = MODEL_URL + "model.json";
+        const metadataURL = MODEL_URL + "metadata.json";
+        model = await tmImage.load(modelURL, metadataURL);
+        statusDiv.textContent = "Model ready! Choose an image 🦴";
 
-          // Prepare label container
-          labelContainer = document.getElementById("label-container");
-          labelContainer.innerHTML = "";
-
-          statusDiv.textContent = "Model loaded! Choose an image.";
-
-          // Listen for image uploads
-          const imageInput = document.getElementById("imageUpload");
-          imageInput.addEventListener("change", handleImageUpload);
+        document
+          .getElementById("imageUpload")
+          .addEventListener("change", handleImageUpload);
       } catch (err) {
-          console.error(err);
-          statusDiv.textContent = "Failed to load model.";
-      }
-  }
-
-  async function handleImageUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      statusDiv.textContent = "Processing image...";
-
-      // Display uploaded image
-      const img = document.createElement("img");
-      img.src = window.URL.createObjectURL(file);
-      const previewContainer = document.getElementById("preview-container");
-      previewContainer.innerHTML = ""; // remove previous
-      previewContainer.appendChild(img);
-
-      // Predict once the image loads
-      img.onload = async () => {
-          try {
-              const prediction = await model.predict(img);
-
-              if (!prediction || prediction.length === 0) {
-                  labelContainer.textContent = "Prediction failed!";
-                  statusDiv.textContent = "Prediction failed!";
-                  return;
-              }
-
-              // Find the class with the highest probability
-              let bestPrediction = prediction[0];
-              for (let i = 1; i < prediction.length; i++) {
-                  if (prediction[i].probability > bestPrediction.probability) {
-                      bestPrediction = prediction[i];
-                  }
-              }
-
-              // Show only the class name
-              labelContainer.textContent = bestPrediction.className;
-              statusDiv.textContent = "Prediction complete!";
-          } catch (err) {
-              console.error(err);
-              labelContainer.textContent = "Error predicting image.";
-              statusDiv.textContent = "Prediction failed!";
-          }
-      };
-  }
-
-  // Initialize model when page loads
-  init();
-</script>
-
-</body>
-</html>
+        console.error(err);
+        statusDiv.textContent = "❌ Fail
