@@ -2,14 +2,15 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Fossil Monster</title>
+  <title>Teachable Machine Image Upload</title>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
   <style>
     body { font-family: Arial; text-align: center; margin-top: 20px; }
-    #preview-container img { margin-top: 20px; border: 1px solid #ccc; }
+    #preview-container img { margin-top: 20px; border: 1px solid #ccc; max-width: 400px; max-height: 400px; }
     #label-container div { font-size: 18px; margin: 5px; }
-    input[type="file"] { font-size: 18px; margin-top: 20px; }
+    input[type="file"] { font-size: 18px; margin-top: 20px; cursor: pointer; }
+    #status { margin-top: 15px; font-weight: bold; color: #333; }
   </style>
 </head>
 <body>
@@ -18,6 +19,7 @@
 
 <input type="file" id="imageUpload" accept="image/*">
 
+<div id="status">Waiting for an image...</div>
 <div id="preview-container"></div>
 <div id="label-container"></div>
 
@@ -26,48 +28,53 @@
   const URL = "https://liolivelee.github.io/NikoFossilMonster/my_model/";
 
   let model, labelContainer, maxPredictions;
+  const statusDiv = document.getElementById("status");
 
-  // Load the model
   async function init() {
+      // Load model and metadata
+      statusDiv.textContent = "Loading model...";
       const modelURL = URL + "model.json";
       const metadataURL = URL + "metadata.json";
-
       model = await tmImage.load(modelURL, metadataURL);
       maxPredictions = model.getTotalClasses();
 
+      // Prepare label container
       labelContainer = document.getElementById("label-container");
       labelContainer.innerHTML = "";
       for (let i = 0; i < maxPredictions; i++) {
           labelContainer.appendChild(document.createElement("div"));
       }
 
-      // Event listener for uploaded image
+      statusDiv.textContent = "Model loaded! Choose an image.";
+
+      // Handle uploaded images
       const imageInput = document.getElementById("imageUpload");
       imageInput.addEventListener("change", handleImageUpload);
   }
 
-  // Handle the uploaded image
   async function handleImageUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
 
-      // Create image element for preview
+      statusDiv.textContent = "Processing image...";
+
+      // Display the uploaded image
       const img = document.createElement("img");
       img.src = URL.createObjectURL(file);
-      img.width = 400; // optional size
-      img.height = 400; // optional size
-
       const previewContainer = document.getElementById("preview-container");
-      previewContainer.innerHTML = ""; // clear previous
+      previewContainer.innerHTML = ""; // clear previous image
       previewContainer.appendChild(img);
 
-      // Wait for image to load before predicting
+      // Wait until the image loads before predicting
       img.onload = async () => {
           const prediction = await model.predict(img);
+
           for (let i = 0; i < maxPredictions; i++) {
-              labelContainer.childNodes[i].innerHTML =
+              labelContainer.childNodes[i].textContent =
                   prediction[i].className + ": " + prediction[i].probability.toFixed(2);
           }
+
+          statusDiv.textContent = "Prediction complete!";
       }
   }
 
