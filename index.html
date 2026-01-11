@@ -6,44 +6,69 @@
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
   <style>
-    body { font-family: Arial; text-align: center; margin-top: 20px; }
-    #preview-container img { 
-        margin-top: 20px; 
-        border: 1px solid #ccc; 
-        max-width: 400px;  /* original full size */
-        max-height: 400px; /* original full size */
-        width: auto;
-        height: auto;
-    }
-    #label-container {
-        font-family: 'Poppins', sans-serif; /* Google Font */
-        font-size: 26px;
-        color: #228B22; /* Forest Green */
-        font-weight: 600;
-        margin-top: 15px;
-        padding: 10px 20px;
-        border: 2px solid #228B22;
-        border-radius: 12px;
-        display: inline-block;
-        background-color: #F0FFF0; /* Light green background */
-    }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: #f7fbff;
+  color: #102a43;
+  margin: 0;
+}
 
-    input[type="file"] { font-size: 18px; margin-top: 20px; cursor: pointer; }
-    #status { margin-top: 15px; font-weight: bold; color: #333; }
-    h3 { color: #555; margin-top: 10px; }
-  
-    h2 {
-      font-family: 'Roboto', sans-serif;
-      color: #87CEEB; /* skyblue */
-      font-size: 42px;
-    }
+.container {
+  max-width: 480px;
+  margin: auto;
+  padding: 20px;
+  text-align: center;
+}
 
-    h3 {
-      font-family: 'Roboto', sans-serif;
-      color: #FF4500; /* OrangeRed */
-      font-size: 42px;
-    }
+/* BIG friendly titles */
+h2 {
+  font-size: 30px;
+  font-weight: 800;
+  color: #0b5ed7;
+  margin-bottom: 6px;
+}
+
+h3 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #2c7be5;
+  margin-top: 0;
+}
+
+/* Prediction result */
+.prediction {
+  font-size: 26px;
+  font-weight: 800;
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 14px;
+  background-color: #e7f1ff;
+  color: #084298;
+}
+
+/* Buttons kids can tap easily */
+button {
+  font-size: 18px;
+  font-weight: 700;
+  padding: 14px 20px;
+  border-radius: 16px;
+  border: none;
+  background-color: #198754;
+  color: white;
+  margin-top: 12px;
+}
+
+button:hover {
+  background-color: #157347;
+}
+
+/* File input spacing */
+input[type="file"] {
+  font-size: 16px;
+  margin-top: 16px;
+}
 </style>
+
   
 </head>
 <body>
