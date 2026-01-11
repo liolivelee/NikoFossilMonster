@@ -14,9 +14,9 @@
   </style>
 </head>
 <body>
-<h2>Niko Fossil Lab</h2>
-<h2>Fossil Monster</h2>
 
+<h2>Niko Fossil Lab</h2>
+h2>Niko Fossil Monster</h2>
 <input type="file" id="imageUpload" accept="image/*">
 
 <div id="status">Waiting for an image...</div>
@@ -25,16 +25,15 @@
 
 <script>
   // URL of your model folder hosted on GitHub Pages
-  const URL = "https://liolivelee.github.io/NikoFossilMonster/my_model/";
+  const MODEL_URL = "https://liolivelee.github.io/NikoFossilMonster/my_model/";
 
   let model, labelContainer, maxPredictions;
   const statusDiv = document.getElementById("status");
 
   async function init() {
-      // Load model and metadata
       statusDiv.textContent = "Loading model...";
-      const modelURL = URL + "model.json";
-      const metadataURL = URL + "metadata.json";
+      const modelURL = MODEL_URL + "model.json";
+      const metadataURL = MODEL_URL + "metadata.json";
       model = await tmImage.load(modelURL, metadataURL);
       maxPredictions = model.getTotalClasses();
 
@@ -47,7 +46,7 @@
 
       statusDiv.textContent = "Model loaded! Choose an image.";
 
-      // Handle uploaded images
+      // Listen for image uploads
       const imageInput = document.getElementById("imageUpload");
       imageInput.addEventListener("change", handleImageUpload);
   }
@@ -58,14 +57,14 @@
 
       statusDiv.textContent = "Processing image...";
 
-      // Display the uploaded image
+      // Display uploaded image
       const img = document.createElement("img");
-      img.src = URL.createObjectURL(file);
+      img.src = window.URL.createObjectURL(file); // use window.URL to avoid conflict
       const previewContainer = document.getElementById("preview-container");
-      previewContainer.innerHTML = ""; // clear previous image
+      previewContainer.innerHTML = ""; // remove previous
       previewContainer.appendChild(img);
 
-      // Wait until the image loads before predicting
+      // Predict once the image loads
       img.onload = async () => {
           const prediction = await model.predict(img);
 
