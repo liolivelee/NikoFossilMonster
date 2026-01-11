@@ -8,7 +8,7 @@
   <style>
     body { font-family: Arial; text-align: center; margin-top: 20px; }
     #preview-container img { margin-top: 20px; border: 1px solid #ccc; max-width: 400px; max-height: 400px; }
-    #label-container div { font-size: 18px; margin: 5px; }
+    #label-container { font-size: 20px; margin-top: 10px; font-weight: bold; }
     input[type="file"] { font-size: 18px; margin-top: 20px; cursor: pointer; }
     #status { margin-top: 15px; font-weight: bold; color: #333; }
   </style>
@@ -40,9 +40,6 @@
       // Prepare label container
       labelContainer = document.getElementById("label-container");
       labelContainer.innerHTML = "";
-      for (let i = 0; i < maxPredictions; i++) {
-          labelContainer.appendChild(document.createElement("div"));
-      }
 
       statusDiv.textContent = "Model loaded! Choose an image.";
 
@@ -68,10 +65,16 @@
       img.onload = async () => {
           const prediction = await model.predict(img);
 
-          for (let i = 0; i < maxPredictions; i++) {
-              labelContainer.childNodes[i].textContent =
-                  prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+          // Find the class with the highest probability
+          let bestPrediction = prediction[0];
+          for (let i = 1; i < prediction.length; i++) {
+              if (prediction[i].probability > bestPrediction.probability) {
+                  bestPrediction = prediction[i];
+              }
           }
+
+          // Show only the best prediction
+          labelContainer.textContent = bestPrediction.className + ": " + bestPrediction.probability.toFixed(2);
 
           statusDiv.textContent = "Prediction complete!";
       }
