@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>Niko Fossil Lab</title>
 
-  <!-- Google Font (kid-friendly & readable) -->
+  <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
 
   <!-- TensorFlow + Teachable Machine -->
@@ -15,7 +15,7 @@
 
   <style>
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background-color: #f7fbff;
       color: #102a43;
       margin: 0;
@@ -40,6 +40,7 @@
       font-weight: 600;
       color: #2c7be5;
       margin-top: 0;
+      margin-bottom: 16px;
     }
 
     input[type="file"] {
@@ -47,33 +48,35 @@
       margin-top: 16px;
     }
 
-    #preview-container img {
-      max-width: 100%;
-      height: auto;
-      margin-top: 16px;
-      border-radius: 12px;
-    }
-
     #status {
       margin-top: 12px;
       font-size: 16px;
     }
 
-    .prediction {
+    #preview-container img {
+      max-width: 100%;
+      height: auto;
+      margin-top: 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .prediction-card {
       font-size: 26px;
       font-weight: 800;
       margin-top: 18px;
-      padding: 14px;
-      border-radius: 14px;
-      background-color: #e7f1ff;
-      color: #084298;
+      padding: 16px;
+      border-radius: 16px;
+      color: white;
+      display: inline-block;
+      min-width: 240px;
+      text-align: center;
     }
   </style>
 </head>
 
 <body>
   <div class="container">
-
     <h2>Niko Fossil Lab</h2>
     <h3>Niko Fossil Monster</h3>
 
@@ -83,18 +86,24 @@
 
     <div id="preview-container"></div>
 
-    <div id="prediction" class="prediction"></div>
-
+    <div id="prediction" class="prediction-card"></div>
   </div>
 
   <script>
-    // 🔗 CHANGE ONLY IF YOUR REPO NAME OR FOLDER CHANGES
     const MODEL_URL = "https://liolivelee.github.io/NikoFossilLab/my_model/";
 
     let model;
     const statusDiv = document.getElementById("status");
     const predictionDiv = document.getElementById("prediction");
     const previewContainer = document.getElementById("preview-container");
+
+    // Define colors & emojis per fossil type
+    const fossilStyles = {
+      "Shark Tooth Fossil": { color: "#0b5ed7", emoji: "🦈", message: "Monster Found!" },
+      "Shell": { color: "#198754", emoji: "🐚", message: "Look at this shell!" },
+      "Trilobite": { color: "#d63384", emoji: "🦖", message: "Prehistoric monster!" },
+      "Unknown": { color: "#6c757d", emoji: "❓", message: "Mystery fossil!" }
+    };
 
     async function init() {
       try {
@@ -103,9 +112,59 @@
         model = await tmImage.load(modelURL, metadataURL);
         statusDiv.textContent = "Model ready! Choose an image 🦴";
 
-        document
-          .getElementById("imageUpload")
-          .addEventListener("change", handleImageUpload);
+        document.getElementById("imageUpload").addEventListener("change", handleImageUpload);
       } catch (err) {
         console.error(err);
-        statusDiv.textContent = "❌ Fail
+        statusDiv.textContent = "❌ Failed to load model";
+      }
+    }
+
+    async function handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      statusDiv.textContent = "Looking at the fossil...";
+      predictionDiv.textContent = "";
+      previewContainer.innerHTML = "";
+
+      const img = document.createElement("img");
+      img.src = URL.createObjectURL(file);
+      previewContainer.appendChild(img);
+
+      img.onload = async () => {
+        try {
+          const predictions = await model.predict(img);
+
+          if (!predictions || predictions.length === 0) {
+            predictionDiv.textContent = "No prediction";
+            statusDiv.textContent = "Prediction failed!";
+            return;
+          }
+
+          // Find the highest probability
+          let best = predictions[0];
+          for (let i = 1; i < predictions.length; i++) {
+            if (predictions[i].probability > best.probability) {
+              best = predictions[i];
+            }
+          }
+
+          // Apply card style based on fossil type
+          const fossilName = best.className;
+          const style = fossilStyles[fossilName] || fossilStyles["Unknown"];
+
+          predictionDiv.textContent = `${style.emoji} ${fossilName} - ${style.message}`;
+          predictionDiv.style.backgroundColor = style.color;
+
+          statusDiv.textContent = "Done!";
+        } catch (err) {
+          console.error(err);
+          statusDiv.textContent = "❌ Prediction error";
+        }
+      };
+    }
+
+    init();
+  </script>
+</body>
+</html>
