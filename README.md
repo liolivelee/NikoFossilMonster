@@ -1,2 +1,2 @@
-# NikoFossilMonster
+# NikoFossilLab
 Fossil ID
