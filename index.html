@@ -35,14 +35,6 @@
       margin-bottom: 4px;
     }
 
-    h3 {
-      font-size: 22px;
-      font-weight: 600;
-      color: #2c7be5;
-      margin-top: 0;
-      margin-bottom: 16px;
-    }
-
     input[type="file"] {
       font-size: 16px;
       margin-top: 16px;
@@ -78,7 +70,6 @@
 <body>
   <div class="container">
     <h2>Niko Fossil Lab</h2>
-   
 
     <input type="file" id="imageUpload" accept="image/*">
 
@@ -97,12 +88,12 @@
     const predictionDiv = document.getElementById("prediction");
     const previewContainer = document.getElementById("preview-container");
 
-    // Define colors & emojis per fossil type
+    // Fossil styles, keys are lowercase for case-insensitive matching
     const fossilStyles = {
-      "Shark Tooth Fossil": { color: "#0b5ed7", emoji: "🦈", message: "Monster Found!" },
-      "Shell": { color: "#198754", emoji: "🐚", message: "Look at this shell!" },
-      "Trilobite": { color: "#d63384", emoji: "🦖", message: "Prehistoric monster!" },
-      "Unknown": { color: "#6c757d", emoji: "❓", message: "Mystery fossil!" }
+      "shark tooth fossil": { color: "#0b5ed7", emoji: "🦈", message: "Monster Found!" },
+      "shell": { color: "#198754", emoji: "🐚", message: "Look at this shell!" },
+      "trilobite": { color: "#d63384", emoji: "🦖", message: "Prehistoric monster!" },
+      "unknown": { color: "#6c757d", emoji: "❓", message: "Mystery fossil!" }
     };
 
     async function init() {
@@ -141,7 +132,7 @@
             return;
           }
 
-          // Find the highest probability
+          // Find highest probability
           let best = predictions[0];
           for (let i = 1; i < predictions.length; i++) {
             if (predictions[i].probability > best.probability) {
@@ -149,11 +140,12 @@
             }
           }
 
-          // Apply card style based on fossil type
-          const fossilName = best.className;
-          const style = fossilStyles[fossilName] || fossilStyles["Unknown"];
+          // Normalize to lowercase for matching
+          const fossilNameLower = best.className.toLowerCase();
+          const style = fossilStyles[fossilNameLower] || fossilStyles["unknown"];
 
-          predictionDiv.textContent = `${style.emoji} ${fossilName} - ${style.message}`;
+          // Display card
+          predictionDiv.textContent = `${style.emoji} ${best.className} - ${style.message}`;
           predictionDiv.style.backgroundColor = style.color;
 
           statusDiv.textContent = "Done!";
