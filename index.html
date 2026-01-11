@@ -7,69 +7,72 @@
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
   <style>
     body { font-family: Arial; text-align: center; margin-top: 20px; }
-    #webcam-container { margin-top: 20px; }
+    #preview-container img { margin-top: 20px; border: 1px solid #ccc; }
     #label-container div { font-size: 18px; margin: 5px; }
-    button { font-size: 18px; padding: 10px 20px; cursor: pointer; }
+    input[type="file"] { font-size: 18px; margin-top: 20px; }
   </style>
 </head>
 <body>
 
-<h2>Teachable Machine Image Model</h2>
-<button id="startBtn">Start</button>
+<h2>Teachable Machine Image Model (Upload)</h2>
 
-<div id="webcam-container"></div>
+<input type="file" id="imageUpload" accept="image/*">
+
+<div id="preview-container"></div>
 <div id="label-container"></div>
 
 <script>
   // URL of your model folder hosted on GitHub Pages
   const URL = "https://liolivelee.github.io/NikoFossilMonster/my_model/";
 
-  let model, webcam, labelContainer, maxPredictions;
+  let model, labelContainer, maxPredictions;
 
-  // Start button
-  document.getElementById("startBtn").addEventListener("click", init);
-
+  // Load the model
   async function init() {
       const modelURL = URL + "model.json";
       const metadataURL = URL + "metadata.json";
 
-      // Load the model and metadata
       model = await tmImage.load(modelURL, metadataURL);
       maxPredictions = model.getTotalClasses();
 
-      // Setup webcam
-      const flip = true;
-      webcam = new tmImage.Webcam(400, 400, flip);
-      await webcam.setup();
-      await webcam.play();
-
-      // Add webcam to DOM
-      document.getElementById("webcam-container").appendChild(webcam.canvas);
-
-      // Setup labels
       labelContainer = document.getElementById("label-container");
       labelContainer.innerHTML = "";
       for (let i = 0; i < maxPredictions; i++) {
           labelContainer.appendChild(document.createElement("div"));
       }
 
-      // Start loop
-      window.requestAnimationFrame(loop);
+      // Event listener for uploaded image
+      const imageInput = document.getElementById("imageUpload");
+      imageInput.addEventListener("change", handleImageUpload);
   }
 
-  async function loop() {
-      webcam.update();
-      await predict();
-      window.requestAnimationFrame(loop);
-  }
+  // Handle the uploaded image
+  async function handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
 
-  async function predict() {
-      const prediction = await model.predict(webcam.canvas);
-      for (let i = 0; i < maxPredictions; i++) {
-          labelContainer.childNodes[i].innerHTML =
-              prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+      // Create image element for preview
+      const img = document.createElement("img");
+      img.src = URL.createObjectURL(file);
+      img.width = 400; // optional size
+      img.height = 400; // optional size
+
+      const previewContainer = document.getElementById("preview-container");
+      previewContainer.innerHTML = ""; // clear previous
+      previewContainer.appendChild(img);
+
+      // Wait for image to load before predicting
+      img.onload = async () => {
+          const prediction = await model.predict(img);
+          for (let i = 0; i < maxPredictions; i++) {
+              labelContainer.childNodes[i].innerHTML =
+                  prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+          }
       }
   }
+
+  // Initialize model when page loads
+  init();
 </script>
 
 </body>
