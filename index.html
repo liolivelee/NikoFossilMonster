@@ -122,7 +122,7 @@ const predictionDiv = document.getElementById("prediction");
 const previewContainer = document.getElementById("preview-container");
 
 const fossilStyles = {
-  "not a shark tooth fossil": { color: "#0b5ed7", emoji:"🦈", message:"Keep searching" }
+  "not a shark tooth fossil": { color: "#6c757d", emoji:"🦈", message:"Keep searching" }
 };
 
 function normalizeName(name) {
@@ -178,7 +178,7 @@ async function handleImageUpload(event) {
       }
 
       const normalized = normalizeName(best.className);
-      const style = fossilStyles[normalized] || { color:"#6c757d", emoji:"👍", message:"Congratulations!" };
+      const style = fossilStyles[normalized] || { color:"#0b5ed7", emoji:"👍", message:"Congratulations!" }; "#0b5ed7"
 
       predictionDiv.textContent = `${style.emoji} ${best.className} - ${style.message}`;
       predictionDiv.style.backgroundColor = style.color;
