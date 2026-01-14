@@ -178,7 +178,7 @@ async function handleImageUpload(event) {
       }
 
       const normalized = normalizeName(best.className);
-      const style = fossilStyles[normalized] || { color:"#6c757d", emoji:"❓", message:"Congratulations!" };
+      const style = fossilStyles[normalized] || { color:"#6c757d", emoji:"👍", message:"Congratulations!" };
 
       predictionDiv.textContent = `${style.emoji} ${best.className} - ${style.message}`;
       predictionDiv.style.backgroundColor = style.color;
