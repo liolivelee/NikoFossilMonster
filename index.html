@@ -192,9 +192,14 @@ async function handleImageUpload(event) {
       const normalized = normalizeName(best.className);
       const style = fossilStyles[normalized] || { color:"#0b5ed7", emoji:"👍", message:"Congratulations!" };
 
-      // Show custom output
-      predictionDiv.textContent = `${style.emoji} ${best.className} - ${style.message}`;
-      predictionDiv.style.backgroundColor = style.color;
+      // Check confidence threshold (70%)
+      if(best.probability < 0.7){
+        predictionDiv.textContent = "🤔 I am not sure about the type";
+        predictionDiv.style.backgroundColor = "#ffc107"; // yellow
+      } else {
+        predictionDiv.textContent = `${style.emoji} ${best.className} - ${style.message}`;
+        predictionDiv.style.backgroundColor = style.color;
+      }
 
       // Show raw output below
       let rawText = "";
