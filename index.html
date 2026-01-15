@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Niko Fossil Lab</title>
+
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+
+<!-- TensorFlow + Teachable Machine -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
+<style>
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f7fbff;
+  color: #102a43;
+  margin: 0;
+}
+
+.container {
+  max-width: 480px;
+  margin: auto;
+  padding: 20px;
+  text-align: center;
+}
+
+h2 {
+  font-size: 36px;
+  font-weight: 800;
+  color: #0b5ed7;
+  margin-bottom: 12px;
+}
+
+/* Hide native file input */
+#imageUpload {
+  display: none;
+}
+
+/* Custom shark tooth button */
+#uploadButton {
+  font-size: 28px;
+  padding: 18px 28px;
+  border-radius: 18px;
+  background-color: #198754;
+  color: white;
+  border: none;
+  font-weight: 800;
+  margin-top: 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#uploadButton:hover {
+  background-color: #157347;
+}
+
+/* Status text bigger */
+#status {
+  margin-top: 16px;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+/* Uploaded image styling */
+#preview-container img {
+  max-width: 90%;
+  height: auto;
+  border-radius: 16px;
+  margin-top: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Prediction card bigger and colorful */
+.prediction-card {
+  font-size: 34px;
+  font-weight: 900;
+  margin-top: 24px;
+  padding: 28px;
+  border-radius: 20px;
+  color: white;
+  display: inline-block;
+  min-width: 280px;
+  max-width: 90%;
+  text-align: center;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+}
+
+/* Raw prediction output */
+#raw-output {
+  margin-top: 14px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #334e68;
+  line-height: 1.5;
+}
+
+#uploadButton img {
+  height: 32px;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>Niko Fossil Lab</h2>
+
+  <!-- Hidden file input -->
+  <input type="file" id="imageUpload" accept="image/*">
+  <!-- Custom big shark tooth button -->
+  <button id="uploadButton">
+    <img src="https://liolivelee.github.io/NikoFossilLab/shark_tooth.jpg" alt="Shark Tooth">
+    Upload Your Picture
+  </button>
+
+  <div id="status">Loading model...</div>
+  <div id="preview-container"></div>
+  <div id="prediction" class="prediction-card"></div>
+  <div id="raw-output"></div>
+</div>
+
+<script>
+const MODEL_URL = "https://liolivelee.github.io/NikoFossilLab/my_model/";
+let model;
+const statusDiv = document.getElementById("status");
+const predictionDiv = document.getElementById("prediction");
+const rawOutputDiv = document.getElementById("raw-output");
+const previewContainer = document.getElementById("preview-container");
+
+const fossilStyles = {
+  "not a shark tooth fossil": { color: "#6c757d", emoji:"🦈", message:"Keep searching" }
+};
+
+function normalizeName(name) {
+  return name.trim().toLowerCase();
+}
+
+const fileInput = document.getElementById("imageUpload");
+const uploadButton = document.getElementById("uploadButton");
+
+// Always trigger file input when custom button clicked
+uploadButton.addEventListener("click", () => {
+  fileInput.click();
+});
+
+async function init() {
+  try {
+    model = await tmImage.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
+    statusDiv.textContent = "Lab is open!";
+
+    fileInput.addEventListener("change", handleImageUpload);
+  } catch(err) {
+    console.error(err);
+    statusDiv.textContent = "❌ Failed to load model";
+  }
+}
+
+async function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  statusDiv.textContent = "Looking at the fossil...";
+  predictionDiv.textContent = "";
+  rawOutputDiv.textContent = "";
+  previewContainer.innerHTML = "";
+
+  const img = document.createElement("img");
+  img.src = URL.createObjectURL(file);
+  previewContainer.appendChild(img);
+
+  img.onload = async () => {
+    try {
+      const predictions = await model.predict(img);
+
+      if (!predictions || predictions.length === 0) {
+        predictionDiv.textContent = "No prediction";
+        statusDiv.textContent = "Prediction failed!";
+        return;
+      }
+
+      // Find highest probability
+      let best = predictions[0];
+      for (let i=1;i<predictions.length;i++){
+        if(predictions[i].probability > best.probability) best = predictions[i];
+      }
+
+      const normalized = normalizeName(best.className);
+      const style = fossilStyles[normalized] || { color:"#0b5ed7", emoji:"👍", message:"Congratulations!" };
+
+      // Check confidence threshold (70%)
+      if(best.probability < 0.7){
+        predictionDiv.textContent = "🤔 I am not sure about the type";
+        predictionDiv.style.backgroundColor = "#ffc107"; // yellow
+      } else {
+        predictionDiv.textContent = `${style.emoji} ${best.className} - ${style.message}`;
+        predictionDiv.style.backgroundColor = style.color;
+      }
+
+      // Show raw output below
+      let rawText = "";
+      predictions.forEach(p => {
+        rawText += `${p.className}: ${p.probability.toFixed(2)} | `;
+      });
+      rawText = rawText.slice(0,-3); // remove last separator
+      rawOutputDiv.textContent = rawText;
+
+      statusDiv.textContent = "Done!";
+
+      // Change button text to “Choose Another Image”
+      uploadButton.innerHTML = `<img src="https://liolivelee.github.io/NikoFossilLab/shark_tooth.jpg" alt="Shark Tooth"> Choose Another Image`;
+
+    } catch(err) {
+      console.error(err);
+      statusDiv.textContent = "❌ Prediction error";
+    }
+  };
+}
+
+init();
+</script>
+</body>
+</html>
