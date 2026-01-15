@@ -90,15 +90,6 @@ h2 {
   box-shadow: 0 6px 12px rgba(0,0,0,0.2);
 }
 
-/* Raw prediction output */
-#raw-output {
-  margin-top: 14px;
-  font-size: 18px;
-  font-weight: 600;
-  color: #334e68;
-  line-height: 1.5;
-}
-
 #uploadButton img {
   height: 32px;
   margin-right: 10px;
@@ -121,7 +112,6 @@ h2 {
   <div id="status">Loading model...</div>
   <div id="preview-container"></div>
   <div id="prediction" class="prediction-card"></div>
-  <div id="raw-output"></div>
 </div>
 
 <script>
@@ -129,7 +119,6 @@ const MODEL_URL = "https://liolivelee.github.io/NikoFossilLab/my_model/";
 let model;
 const statusDiv = document.getElementById("status");
 const predictionDiv = document.getElementById("prediction");
-const rawOutputDiv = document.getElementById("raw-output");
 const previewContainer = document.getElementById("preview-container");
 
 const fossilStyles = {
@@ -166,7 +155,6 @@ async function handleImageUpload(event) {
 
   statusDiv.textContent = "Looking at the fossil...";
   predictionDiv.textContent = "";
-  rawOutputDiv.textContent = "";
   previewContainer.innerHTML = "";
 
   const img = document.createElement("img");
@@ -194,20 +182,12 @@ async function handleImageUpload(event) {
 
       // Check confidence threshold (70%)
       if(best.probability < 0.7){
-        predictionDiv.textContent = "🤔 I am not sure about the type";
+        predictionDiv.textContent = "🤔 I am not sure about this picture.";
         predictionDiv.style.backgroundColor = "#ffc107"; // yellow
       } else {
         predictionDiv.textContent = `${style.emoji} ${best.className} - ${style.message}`;
         predictionDiv.style.backgroundColor = style.color;
       }
-
-      // Show raw output below
-      let rawText = "";
-      predictions.forEach(p => {
-        rawText += `${p.className}: ${p.probability.toFixed(2)} | `;
-      });
-      rawText = rawText.slice(0,-3); // remove last separator
-      rawOutputDiv.textContent = rawText;
 
       statusDiv.textContent = "Done!";
 
