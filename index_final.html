@@ -1,0 +1,89 @@
+<script>
+const MODEL_URL = "https://liolivelee.github.io/NikoFossilLab/my_model/";
+let model;
+const statusDiv = document.getElementById("status");
+const predictionDiv = document.getElementById("prediction");
+const previewContainer = document.getElementById("preview-container");
+
+const fossilStyles = {
+  "not a shark tooth fossil": { color: "#6c757d", emoji:"🦈", message:"Keep searching" }
+};
+
+function normalizeName(name) {
+  return name.trim().toLowerCase();
+}
+
+const fileInput = document.getElementById("imageUpload");
+const uploadButton = document.getElementById("uploadButton");
+
+// Trigger file input when custom button clicked
+uploadButton.addEventListener("click", () => {
+  fileInput.click();
+});
+
+async function init() {
+  try {
+    model = await tmImage.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
+    statusDiv.textContent = "Lab is open!";
+
+    fileInput.addEventListener("change", handleImageUpload);
+  } catch(err) {
+    console.error(err);
+    statusDiv.textContent = "❌ Failed to load model";
+  }
+}
+
+async function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  statusDiv.textContent = "Looking at the fossil...";
+  predictionDiv.textContent = "";
+  previewContainer.innerHTML = "";
+
+  const img = document.createElement("img");
+  img.src = URL.createObjectURL(file);
+  previewContainer.appendChild(img);
+
+  img.onload = async () => {
+    try {
+      const predictions = await model.predict(img);
+
+      if (!predictions || predictions.length === 0) {
+        predictionDiv.textContent = "No prediction";
+        statusDiv.textContent = "Prediction failed!";
+        return;
+      }
+
+      // Find highest probability
+      let best = predictions[0];
+      for (let i=1;i<predictions.length;i++){
+        if(predictions[i].probability > best.probability) best = predictions[i];
+      }
+
+      const normalized = normalizeName(best.className);
+      const style = fossilStyles[normalized] || { color:"#0b5ed7", emoji:"👍", message:"Congratulations!" };
+
+      // Check confidence threshold (70%)
+      if(best.probability < 0.7){
+        predictionDiv.textContent = "🤔 I am not sure about the type";
+        predictionDiv.style.backgroundColor = "#ffc107"; // yellow
+      } else {
+        predictionDiv.textContent = `${style.emoji} ${best.className} - ${style.message}`;
+        predictionDiv.style.backgroundColor = style.color;
+      }
+
+      statusDiv.textContent = "Done!";
+
+      // Change button text to “Choose Another Image”
+      uploadButton.innerHTML = `<img src="https://liolivelee.github.io/NikoFossilLab/shark_tooth.jpg" alt="Shark Tooth"> Choose Another Image`;
+
+    } catch(err) {
+      console.error(err);
+      statusDiv.textContent = "❌ Prediction error";
+    }
+  };
+}
+
+init();
+</script>
