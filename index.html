@@ -121,7 +121,7 @@ h2 {
   <div id="status">Loading model...</div>
   <div id="preview-container"></div>
   <div id="prediction" class="prediction-card"></div>
-  <div id="raw-output"></div>
+  <!--<div id="raw-output"></div> -->
 </div>
 
 <script>
@@ -202,13 +202,14 @@ async function handleImageUpload(event) {
       }
 
       // Show raw output below
+      /*
       let rawText = "";
       predictions.forEach(p => {
         rawText += `${p.className}: ${p.probability.toFixed(2)} | `;
       });
       rawText = rawText.slice(0,-3); // remove last separator
       rawOutputDiv.textContent = rawText;
-
+*/
       statusDiv.textContent = "Done!";
 
       // Change button text to “Choose Another Image”
