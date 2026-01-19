@@ -192,8 +192,8 @@ async function handleImageUpload(event) {
       const normalized = normalizeName(best.className);
       const style = fossilStyles[normalized] || { color:"#0b5ed7", emoji:"👍", message:"Congratulations!" };
 
-      // Check confidence threshold (70%)
-      if(best.probability < 0.7){
+      // Check confidence threshold (65%)
+      if(best.probability < 0.65){
         predictionDiv.textContent = "🤔 I am not sure about the type";
         predictionDiv.style.backgroundColor = "#ffc107"; // yellow
       } else {
